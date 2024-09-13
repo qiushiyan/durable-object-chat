@@ -1,0 +1,8 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "chat"
+compatibility_date = "2024-05-12"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./build/client"
+
+[vars]
+API_URL = "chat-api.qiushi-yann.workers.dev"
