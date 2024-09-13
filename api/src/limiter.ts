@@ -3,7 +3,7 @@ import { DurableObject } from "cloudflare:workers";
 const milliseconds_per_request = 500;
 const milliseconds_for_grace_period = 5000;
 
-export class RateLimiter extends DurableObject {
+export class Limiter extends DurableObject {
 	private nextAllowedTime: number;
 
 	constructor(ctx: DurableObjectState, env: Env) {
