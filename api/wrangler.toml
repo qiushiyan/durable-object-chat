@@ -8,11 +8,11 @@ class_name = "Room"
 
 [[durable_objects.bindings]]
 name = "LIMITER"
-class_name = "Limiter"
+class_name = "RateLimiter"
 
 [[migrations]]
-tag = "v1"                        # Should be unique for each entry
-new_classes = ["Room", "Limiter"]
+tag = "v1"                            # Should be unique for each entry
+new_classes = ["Room", "RateLimiter"]
 
 
 # [vars]

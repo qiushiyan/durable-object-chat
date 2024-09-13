@@ -33,8 +33,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="col-span-2 bg-muted/50"></div>
           <div className="col-span-2 bg-background"></div>
         </div>
-        <div className="isolate mx-auto w-full max-w-[70vw] px-8">
-          <div className="grid h-[60vh] overflow-hidden rounded-2xl shadow-2xl min-[480px]:grid-cols-[theme(width.56),1fr]">
+        <div className="isolate mx-auto w-full max-w-[70vw] px-8 h-[60vh]">
+          <div className="grid h-full overflow-hidden rounded-2xl shadow-2xl min-[480px]:grid-cols-[theme(width.56),1fr]">
             <RoomsSidebar />
             {children}
           </div>

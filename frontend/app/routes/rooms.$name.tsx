@@ -20,6 +20,7 @@ import { Button } from "~/components/ui/button";
 import { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { ScrollArea } from "~/components/ui/scroll-area";
 
 type Message =
   | { message: string; from: string; timestamp: number; type: "chat" }
@@ -35,6 +36,7 @@ export default function Room() {
   const { context } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { pathname } = useLocation();
+  const messagesContainer = useRef<HTMLDivElement>(null);
 
   const params = useParams() as { name: string };
   const [messages, setMessages] = useState<Message[]>([]);
@@ -76,7 +78,12 @@ export default function Room() {
       ws.current.onmessage = (e) => {
         console.log("received", e.data);
         const payload = JSON.parse(e.data);
-        if (payload.type === "users") {
+        if (payload.type === "rate-limit") {
+          toast.warning(
+            `Exceed rate limit, please try again in ${payload.retryAfter} seconds.`
+          );
+          return;
+        } else if (payload.type === "users") {
           setUsers(payload.users);
         } else {
           setMessages((messages) => [...messages, payload]);
@@ -101,42 +108,54 @@ export default function Room() {
     };
   }, [params, name]);
 
+  useEffect(() => {
+    if (messagesContainer.current) {
+      messagesContainer.current.scrollIntoView(false);
+    }
+  }, [messages]);
+
   return (
-    <main className="flex flex-col h-full" key={pathname}>
-      <div className="flex-grow p-4 relative">
-        <UsersList users={users} />
-        <ul className="grid gap-1.5">
-          {messages.map((message, index) => (
-            <li
-              key={index}
-              className={cn(
-                message.type === "chat" ? "" : "text-muted-foreground"
-              )}
-            >
-              {message.type === "chat" ? (
-                <div key={message.timestamp}>
-                  <div className="flex items-baseline">
-                    <span className="font-semibold mr-2">{message.from}</span>
-                    <span className="text-xs text-accent hidden lg:block">
-                      {new Date(message.timestamp).toLocaleTimeString()}
-                    </span>
-                  </div>
-                  <p className="text-foreground/80">{message.message}</p>
-                </div>
-              ) : (
-                <div className="flex gap-2  items-center">
-                  <p className="text-muted-foreground">{message.message}</p>
-                  <time className="text-sm text-muted-foreground hidden lg:block">
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </time>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+    <main className="flex flex-col justify-between h-[60vh] " key={pathname}>
+      <div className="flex-grow overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 relative" ref={messagesContainer}>
+            <ul className="grid gap-1.5">
+              {messages.map((message, index) => (
+                <li
+                  key={index}
+                  className={cn(
+                    message.type === "chat" ? "" : "text-muted-foreground"
+                  )}
+                >
+                  {message.type === "chat" ? (
+                    <div key={message.timestamp}>
+                      <div className="flex items-baseline">
+                        <span className="font-semibold mr-2">
+                          {message.from}
+                        </span>
+                        <span className="text-xs text-muted-foreground hidden lg:block">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="text-foreground/80">{message.message}</p>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2  items-center">
+                      <p className="text-muted-foreground">{message.message}</p>
+                      <time className="text-sm text-muted-foreground hidden lg:block">
+                        {new Date(message.timestamp).toLocaleTimeString()}
+                      </time>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <UsersList users={users} />
+        </ScrollArea>
       </div>
 
-      <footer className="mt-auto flex flex-col gap-2 p-4 border-t border-slate-300">
+      <footer className="flex flex-col gap-2 p-4 border-t flex-shrink-0">
         <fetcher.Form
           className="grid lg:grid-cols-[1fr_auto] gap-2"
           onSubmit={onSubmit}

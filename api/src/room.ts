@@ -1,11 +1,10 @@
 import { DurableObject } from "cloudflare:workers";
-import { RateLimiterClient } from "./limiter-client";
+import { RateLimiter } from "./limiter";
 
 // a client's session
 type Session = {
 	name?: string;
 	limiterId: string;
-	limiter: RateLimiterClient;
 	blockedMessages: Message[];
 };
 
@@ -68,9 +67,9 @@ export class Room extends DurableObject<Env> {
 	async handleSession(server: WebSocket, ip: string) {
 		const limiterId = this.env.LIMITER.idFromName(ip);
 		const limiterStub = this.env.LIMITER.get(limiterId);
+
 		const session: Session = {
 			limiterId: limiterId.toString(),
-			limiter: new RateLimiterClient(limiterStub),
 			blockedMessages: [],
 		};
 
@@ -108,6 +107,23 @@ export class Room extends DurableObject<Env> {
 
 		if (!session) {
 			ws.close(1011, "Session not found");
+			return;
+		}
+
+		const limiterId = this.env.LIMITER.idFromString(session.limiterId);
+		const limiterStub = this.env.LIMITER.get(limiterId);
+
+		const millisecondsToNextRequest =
+			// @ts-ignore
+			await limiterStub.getMillisecondsToNextRequest();
+
+		if (millisecondsToNextRequest > 0) {
+			ws.send(
+				JSON.stringify({
+					type: "rate-limit",
+					retryAfter: millisecondsToNextRequest / 1000,
+				}),
+			);
 			return;
 		}
 
