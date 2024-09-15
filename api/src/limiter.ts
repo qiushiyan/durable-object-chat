@@ -13,7 +13,6 @@ export class Limiter extends DurableObject {
 
 	async getMillisecondsToNextRequest() {
 		const now = Date.now();
-
 		this.nextAllowedTime = Math.max(now, this.nextAllowedTime);
 		this.nextAllowedTime += milliseconds_per_request;
 

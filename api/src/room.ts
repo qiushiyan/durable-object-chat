@@ -1,5 +1,4 @@
 import { DurableObject } from "cloudflare:workers";
-import { RateLimiter } from "./limiter";
 
 // a client's session
 type Session = {
@@ -66,7 +65,6 @@ export class Room extends DurableObject<Env> {
 
 	async handleSession(server: WebSocket, ip: string) {
 		const limiterId = this.env.LIMITER.idFromName(ip);
-		const limiterStub = this.env.LIMITER.get(limiterId);
 
 		const session: Session = {
 			limiterId: limiterId.toString(),

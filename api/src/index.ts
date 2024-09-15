@@ -1,5 +1,4 @@
-import { Hono, HonoRequest } from "hono";
-import { cors } from "hono/cors";
+import { Hono } from "hono";
 
 const app = new Hono<{ Bindings: Env }>();
 
