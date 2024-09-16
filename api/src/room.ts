@@ -72,8 +72,7 @@ export class Room extends DurableObject<Env> {
 		};
 
 		server.serializeAttachment({
-			...server.deserializeAttachment(),
-			limiterId: limiterId.toString(),
+			...session
 		});
 
 		this.sessions.set(server, session);
